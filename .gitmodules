@@ -1,0 +1,3 @@
+[submodule "auto-rsa"]
+	path = auto-rsa
+	url = https://github.com/NelsonDane/auto-rsa.git
