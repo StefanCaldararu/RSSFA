@@ -16,20 +16,6 @@ SOURCE_CHANNEL_ID = int(os.getenv('REVERSE_STOCK_SPLIT_NEWS_CHANNEL_ID'))
 ERRORS_CHANNEL_ID = int(os.getenv('ERRORS_CHANNEL_ID'))
 openai.api_key = os.getenv('OPEN_AI_KEY')
 
-def analyze_article(url):
-    # Fetch the HTML content of the article
-    response = requests.get(url)
-    soup = BeautifulSoup(response.text, 'html.parser')
-
-    # Extract the article text
-    article_text = ''
-    article = soup.find('article')
-    if article:
-        paragraphs = article.find_all('p')
-        article_text = ' '.join([p.get_text() for p in paragraphs])
-
-    return article_text
-
 bot = commands.Bot(command_prefix='!', intents=discord.Intents.all())
 
 @bot.event
