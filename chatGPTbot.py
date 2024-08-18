@@ -78,6 +78,10 @@ async def on_message(message):
                 print(chatCompletion.choices[0].message.content)
                 print(chatCompletion.choices[1].message.content)
                 print(chatCompletion.choices[2].message.content)
+                # remove any new lines from the beginning or end of any of the messages
+                chatCompletion.choices[0].message.content = chatCompletion.choices[0].message.content.strip()
+                chatCompletion.choices[1].message.content = chatCompletion.choices[1].message.content.strip()
+                chatCompletion.choices[2].message.content = chatCompletion.choices[2].message.content.strip()
                 # get the ticker from the generated message
                 ticker = chatCompletion.choices[0].message.content.split('\n')[0].split(': ')[1]
                 # remove any " or [ or ] or * from the ticker
@@ -130,9 +134,11 @@ async def on_message(message):
                     await target_channel.send(f"""Purchasable: FALSE\nReason: Unknown reversal\n{default_message}\nEstimated Profit: N/A""")
                     return
                 # if the reversal is not a roundup or round to nearest, post a message stating that in the target channel
-                if reversal != 'round up' or reversal != 'round to nearest':
+
+                if reversal.strip() != 'round up' and reversal.strip() != 'round to nearest':
                     await target_channel.send(f"""Purchasable: FALSE\nReason: {reversal}\n{default_message}\nEstimated Profit: N/A""")
                     return
+                
                 # check if stock is traded on NYSE, NASDAQ, or AMEX
                 if exchange != 'NYSE' and exchange != 'NASDAQ' and exchange != 'ASE':
                     await target_channel.send(f"""Purchasable: FALSE\nReason: Exchange not supported\n{default_message}\nEstimated Profit: N/A""")
@@ -146,15 +152,14 @@ async def on_message(message):
                     return
                 
                 # check to make sure the reversal hasn't happened yet
-                dateformat = "%m-%d-%Y"
-                reversal_date = datetime.strptime(date, dateformat)
-                today = datetime.now()
-                difference = (today - reversal_date).days
-                if difference > 1:
-                    await target_channel.send(f"""Purchasable: FALSE\nReason: Too close to reversal date\n{default_message}\nEstimated Profit: N/A""")
-                    return
+                # dateformat = "%m-%d-%Y"
+                # reversal_date = datetime.strptime(date, dateformat)
+                # today = datetime.now()
+                # difference = (today - reversal_date).days
+                # if difference > 1:
+                #     await target_channel.send(f"""Purchasable: FALSE\nReason: Too close to reversal date\n{default_message}\nEstimated Profit: N/A""")
+                #     return
                 # check if we are within one day of the reversal
-
 
 
 
