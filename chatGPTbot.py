@@ -97,6 +97,7 @@ async def on_message(message):
                 ratio = ratio.replace('[', '')
                 ratio = ratio.replace(']', '')
                 ratio = ratio.replace('*', '')
+                ratio = ratio.replace('-for-', '-')
                 # get the reversal from the generated message
                 reversal = chatCompletion.choices[0].message.content.split('\n')[3].split(': ')[1]
                 reversal = reversal.replace('"', '')
