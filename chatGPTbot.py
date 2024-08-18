@@ -6,6 +6,7 @@ import openai
 import requests
 from bs4 import BeautifulSoup
 import yfinance as yf
+import math
 
 load_dotenv()
 
@@ -115,6 +116,19 @@ async def on_message(message):
                 reversal = reversal.replace('[', '')
                 reversal = reversal.replace(']', '')
                 reversal = reversal.replace('*', '')
+
+                reversal1 = chatCompletion.choices[1].message.content.split('\n')[3].split(': ')[1]
+                reversal1 = reversal1.replace('"', '')
+                reversal1 = reversal1.replace('[', '')
+                reversal1 = reversal1.replace(']', '')
+                reversal1 = reversal1.replace('*', '')
+                
+                reversal2 = chatCompletion.choices[2].message.content.split('\n')[3].split(': ')[1]
+                reversal2 = reversal2.replace('"', '')
+                reversal2 = reversal2.replace('[', '')
+                reversal2 = reversal2.replace(']', '')
+                reversal2 = reversal2.replace('*', '')
+        
                 # get the exchange from the stock
                 stock = yf.Ticker(ticker)
                 exchange = stock.info.get('exchange', 'N/A')
@@ -123,8 +137,12 @@ async def on_message(message):
 
                 # generate the default message
                 default_message = f"""Stock: {ticker}\nExchange: {exchange}\nPrice: {price}\nDate: {date}\nRatio: {ratio}\nReversal: {reversal}"""
-                # if the reversal is not a roundup, post a message stating that in the target channel
-                if reversal != 'round up':
+                # if the reversals do not match, post a message stating that in the target channel
+                if reversal != reversal1 or reversal != reversal2:
+                    await target_channel.send(f"""Purchasable: FALSE\nReason: Unknown reversal\n{default_message}\nEstimated Profit: N/A""")
+                    return
+                # if the reversal is not a roundup or round to nearest, post a message stating that in the target channel
+                if reversal != 'round up' or reversal != 'round to nearest':
                     await target_channel.send(f"""Purchasable: FALSE\nReason: {reversal}\n{default_message}\nEstimated Profit: N/A""")
                     return
                 # check if stock is traded on NYSE, NASDAQ, or AMEX
@@ -142,8 +160,18 @@ async def on_message(message):
                 fratio = float(ratio.split('-')[0])
                 if(fratio == 1):
                     fratio = float(ratio.split('-')[1])
-                # get the estimated profit
-                profit = round(price, 2) * fratio - round(price, 2)
+                # if the reversal is a round up, get the estimated profit
+                if reversal == 'round up':
+                    # get the estimated profit
+                    profit = round(price, 2) * fratio - round(price, 2)
+                # if the reversal is a round to nearest, get the estimated profit
+                elif reversal == 'round to nearest':
+                    # get the estimated profit
+                    profit = round(price, 2) * fratio - round(price, 2) * math.ceil(fratio)
+                    # if we are spending more than a dollar don't buy the stock
+                    if(round(price,2) * math.ceil(fratio) > 1):
+                        await target_channel.send(f"""Purchasable: FALSE\nReason: Price too high\n{default_message}\nEstimated Profit: {profit}""")
+                        return
                 # if the estimated profit is less than .50, don't purchase
                 if profit < .50:
                     await target_channel.send(f"""Purchasable: FALSE\nReason: Profit too low\n{default_message}\nEstimated Profit: {profit}""")
