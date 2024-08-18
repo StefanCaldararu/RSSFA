@@ -7,6 +7,7 @@ import requests
 from bs4 import BeautifulSoup
 import yfinance as yf
 import math
+from datetime import datetime
 
 load_dotenv()
 
@@ -142,6 +143,20 @@ async def on_message(message):
                                                 {default_message}
                                                 Estimated Profit: N/A""")
                     return
+                
+                # check to make sure the reversal hasn't happened yet
+                dateformat = "%m-%d-%Y"
+                reversal_date = datetime.strptime(date, dateformat)
+                today = datetime.now()
+                difference = (today - reversal_date).days
+                if difference > 1:
+                    await target_channel.send(f"""Purchasable: FALSE\nReason: Too close to reversal date\n{default_message}\nEstimated Profit: N/A""")
+                    return
+                # check if we are within one day of the reversal
+
+
+
+
                 # get the ratio as an float, rounded to the nearest 2 decimal places after the decimal
                 fratio = float(ratio.split('-')[0])
                 if(fratio == 1):
@@ -165,6 +180,7 @@ async def on_message(message):
                 # otherwise we can purchase so send a message.
                 await target_channel.send(f"""Purchasable: TRUE\nReason: N/A\n{default_message}\nEstimated Profit: {profit}""")
     except Exception as e:
+        print(e)
         target_channel = bot.get_channel(ERRORS_CHANNEL_ID)
         await target_channel.send(f"An error occurred: {e}")
 
