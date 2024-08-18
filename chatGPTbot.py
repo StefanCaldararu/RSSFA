@@ -10,9 +10,9 @@ import math
 
 load_dotenv()
 
-BOT_TOKEN = os.getenv('BOT_TOKEN')
-TARGET_CHANNEL_ID = int(os.getenv('TARGET_CHANNEL_ID'))
-SOURCE_CHANNEL_ID = int(os.getenv('SOURCE_CHANNEL_ID'))
+BOT_TOKEN = os.getenv('CHAT_BOT_TOKEN')
+TARGET_CHANNEL_ID = int(os.getenv('STOCK_REVERSALS_CHANNEL_ID'))
+SOURCE_CHANNEL_ID = int(os.getenv('REVERSE_STOCK_SPLIT_NEWS_CHANNEL_ID'))
 openai.api_key = os.getenv('OPEN_AI_KEY')
 
 def analyze_article(url):
