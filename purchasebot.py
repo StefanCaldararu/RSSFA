@@ -49,7 +49,7 @@ async def on_message(message):
         # purchase the stock.
             
         script_path = 'auto-rsa/autoRSA.py'
-        args = ['buy', str(quantity), str(ticker), 'tradier', 'true']
+        args = ['buy', str(quantity), str(ticker), 'firstrade', 'true']
         print("running subprocess")
         process = subprocess.Popen(['python3', script_path] + args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         process.stdin.write('\n')
@@ -69,6 +69,10 @@ async def on_message(message):
         if(process.returncode != 0):
             errors_channel = bot.get_channel(ERRORS_CHANNEL_ID)
             await errors_channel.send(f"An error occurred with purchase: {process.stderr}")
+            return
+        # send a message to the target channel
+        target_channel = bot.get_channel(TARGET_CHANNEL_ID)
+        await target_channel.send(f"Purchase of {quantity} shares of {ticker} successful.")
 
 
     except Exception as e:
