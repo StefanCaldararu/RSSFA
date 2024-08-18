@@ -13,6 +13,7 @@ load_dotenv()
 BOT_TOKEN = os.getenv('CHAT_BOT_TOKEN')
 TARGET_CHANNEL_ID = int(os.getenv('STOCK_REVERSALS_CHANNEL_ID'))
 SOURCE_CHANNEL_ID = int(os.getenv('REVERSE_STOCK_SPLIT_NEWS_CHANNEL_ID'))
+ERRORS_CHANNEL_ID = int(os.getenv('ERRORS_CHANNEL_ID'))
 openai.api_key = os.getenv('OPEN_AI_KEY')
 
 def analyze_article(url):
@@ -37,14 +38,13 @@ async def on_ready():
 
 @bot.event
 async def on_message(message):
-    try:
-        # Avoid the bot responding to its own messages
-        if message.author == bot.user:
-            return
+    # Avoid the bot responding to its own messages
+    if message.author == bot.user:
+        return
 
-        if message.channel.id != SOURCE_CHANNEL_ID:
-            return
-        
+    if message.channel.id != SOURCE_CHANNEL_ID:
+        return
+    try:
         # Fetch the target channel
         target_channel = bot.get_channel(TARGET_CHANNEL_ID)
 
@@ -179,6 +179,7 @@ async def on_message(message):
                 # otherwise we can purchase so send a message.
                 await target_channel.send(f"""Purchasable: TRUE\nReason: N/A\n{default_message}\nEstimated Profit: {profit}""")
     except Exception as e:
+        target_channel = bot.get_channel(ERRORS_CHANNEL_ID)
         await target_channel.send(f"An error occurred: {e}")
 
 bot.run(BOT_TOKEN)
