@@ -9,8 +9,8 @@ load_dotenv()
 
 BOT_TOKEN = os.getenv('PURCHASE_BOT_TOKEN')
 SOURCE_CHANNEL_ID = int(os.getenv('STOCK_REVERSALS_CHANNEL_ID'))
-TARGET_CHANNEL_ID = int(os.getenv('PURCHASES_CHANNEL_ID'))
-ERRORS_CHANNEL_ID = int(os.getenv('ERRORS_CHANNEL_ID'))
+# TARGET_CHANNEL_ID = int(os.getenv('PURCHASES_CHANNEL_ID'))
+# ERRORS_CHANNEL_ID = int(os.getenv('ERRORS_CHANNEL_ID'))
 
 bot = commands.Bot(command_prefix='!', intents=discord.Intents.all())
 
@@ -67,18 +67,18 @@ async def on_message(message):
         # print("Error:", stderr.decode())
         # print("Return Code:", process.returncode)
         if(process.returncode != 0):
-            errors_channel = bot.get_channel(ERRORS_CHANNEL_ID)
-            await errors_channel.send(f"An error occurred with purchase: {process.stderr}")
+            # errors_channel = bot.get_channel(ERRORS_CHANNEL_ID)
+            # await errors_channel.send(f"An error occurred with purchase: {process.stderr}")
             return
         # send a message to the target channel
-        target_channel = bot.get_channel(TARGET_CHANNEL_ID)
-        await target_channel.send(f"Purchase of {quantity} shares of {ticker} successful.")
+        # target_channel = bot.get_channel(TARGET_CHANNEL_ID)
+        # await target_channel.send(f"Purchase of {quantity} shares of {ticker} successful.")
 
 
     except Exception as e:
         print(e)
-        errors_channel = bot.get_channel(ERRORS_CHANNEL_ID)
-        await errors_channel.send(f"An error occurred: {e}")
+        # errors_channel = bot.get_channel(ERRORS_CHANNEL_ID)
+        # await errors_channel.send(f"An error occurred: {e}")
 
 bot.run(BOT_TOKEN)
 
