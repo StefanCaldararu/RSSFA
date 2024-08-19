@@ -9,6 +9,10 @@ import yfinance as yf
 import math
 from datetime import datetime
 
+def clean(message):
+    return message.strip().replace('"', '').replace('[', '').replace(']', '').replace('*', '').replace('-for-', '-')
+
+
 load_dotenv()
 
 BOT_TOKEN = os.getenv('CHAT_BOT_TOKEN')
@@ -79,58 +83,51 @@ async def on_message(message):
                 print(chatCompletion.choices[1].message.content)
                 print(chatCompletion.choices[2].message.content)
                 # remove any new lines from the beginning or end of any of the messages
-                chatCompletion.choices[0].message.content = chatCompletion.choices[0].message.content.strip()
-                chatCompletion.choices[1].message.content = chatCompletion.choices[1].message.content.strip()
-                chatCompletion.choices[2].message.content = chatCompletion.choices[2].message.content.strip()
+                for i in range(3):
+                    chatCompletion.choices[i].message.content = chatCompletion.choices[i].message.content.strip()
+                
+                # clean the first line of each message
+                for i in range(3):
+                    chatCompletion.choices[i].message.content = clean(chatCompletion.choices[i].message.content)
+                # if the first line doesn't start with "ticker: " then remove it
+                for i in range(3):
+                    if not chatCompletion.choices[i].message.content.startswith('ticker: '):
+                        chatCompletion.choices[i].message.content = clean(chatCompletion.choices[i].message.content.split('\n', 1)[1])
                 # get the ticker from the generated message
                 ticker = chatCompletion.choices[0].message.content.split('\n')[0].split(': ')[1]
                 # remove any " or [ or ] or * from the ticker
-                ticker = ticker.replace('"', '')
-                ticker = ticker.replace('[', '')
-                ticker = ticker.replace(']', '')
-                ticker = ticker.replace('*', '')
+                ticker = clean(ticker)
                 # get the date from the generated message
                 date = chatCompletion.choices[0].message.content.split('\n')[1].split(': ')[1]
-                date = date.replace('"', '')
-                date = date.replace('[', '')
-                date = date.replace(']', '')
-                date = date.replace('*', '')
+                date = clean(date)
                 # get the ratio from the generated message
                 ratio = chatCompletion.choices[0].message.content.split('\n')[2].split(': ')[1]
-                ratio = ratio.replace('"', '')
-                ratio = ratio.replace('[', '')
-                ratio = ratio.replace(']', '')
-                ratio = ratio.replace('*', '')
-                ratio = ratio.replace('-for-', '-')
-                # get the reversal from the generated message
-                reversal = chatCompletion.choices[0].message.content.split('\n')[3].split(': ')[1]
-                reversal = reversal.replace('"', '')
-                reversal = reversal.replace('[', '')
-                reversal = reversal.replace(']', '')
-                reversal = reversal.replace('*', '')
+                ratio = clean(ratio)
 
-                reversal1 = chatCompletion.choices[1].message.content.split('\n')[3].split(': ')[1]
-                reversal1 = reversal1.replace('"', '')
-                reversal1 = reversal1.replace('[', '')
-                reversal1 = reversal1.replace(']', '')
-                reversal1 = reversal1.replace('*', '')
-                
-                reversal2 = chatCompletion.choices[2].message.content.split('\n')[3].split(': ')[1]
-                reversal2 = reversal2.replace('"', '')
-                reversal2 = reversal2.replace('[', '')
-                reversal2 = reversal2.replace(']', '')
-                reversal2 = reversal2.replace('*', '')
-        
                 # get the exchange from the stock
                 stock = yf.Ticker(ticker)
                 exchange = stock.info.get('exchange', 'N/A')
                 price = stock.history(period="1d")['Close'][0]
 
-
+                # get the reversal from the generated message, by popular vote (this is where chatGPT often gets confused)
+                votes = {}
+                for i in range(3):
+                    reversal = chatCompletion.choices[i].message.content.split('\n')[3].split(': ')[1]
+                    reversal = clean(reversal)
+                    if reversal in votes:
+                        votes[reversal] += 1
+                    else:
+                        votes[reversal] = 1
+                max_votes = 0
+                for key in votes:
+                    if votes[key] > max_votes:
+                        reversal = key
+                        max_votes = votes[key]
                 # generate the default message
                 default_message = f"""Stock: {ticker}\nExchange: {exchange}\nPrice: {price}\nDate: {date}\nRatio: {ratio}\nReversal: {reversal}"""
+
                 # if the reversals do not match, post a message stating that in the target channel
-                if reversal != reversal1 or reversal != reversal2:
+                if max_votes < 2:
                     await target_channel.send(f"""Purchasable: FALSE\nReason: Unknown reversal\n{default_message}\nEstimated Profit: N/A""")
                     return
                 # if the reversal is not a roundup or round to nearest, post a message stating that in the target channel
