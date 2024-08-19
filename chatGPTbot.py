@@ -152,14 +152,15 @@ async def on_message(message):
                     return
                 
                 # check to make sure the reversal hasn't happened yet
-                # dateformat = "%m-%d-%Y"
-                # reversal_date = datetime.strptime(date, dateformat)
-                # today = datetime.now()
-                # difference = (today - reversal_date).days
-                # if difference > 1:
-                #     await target_channel.send(f"""Purchasable: FALSE\nReason: Too close to reversal date\n{default_message}\nEstimated Profit: N/A""")
-                #     return
+                dateformat = "%m-%d-%Y"
+                reversal_date = datetime.strptime(date, dateformat)
+                today = datetime.now()
+                difference = (reversal_date - today).days
                 # check if we are within one day of the reversal
+                print(difference)
+                if difference > 1:
+                    await target_channel.send(f"""Purchasable: FALSE\nReason: Too close to reversal date\n{default_message}\nEstimated Profit: N/A""")
+                    return
 
 
 
