@@ -137,7 +137,10 @@ async def on_message(message):
                     return
                 
                 # check if stock is traded on NYSE, NASDAQ, or AMEX
-                if exchange != 'NYSE' and exchange != 'NASDAQ' and exchange != 'ASE':
+
+                # list of accepted exchange markets:
+                markets = ["XNYS", "ARCX", "XCIS", "XASE", "XNAS", "XNMS", "XNGS", "XNCM", "AMXO"]
+                if exchange not in markets:
                     await target_channel.send(f"""Purchasable: FALSE\nReason: Exchange not supported\n{default_message}\nEstimated Profit: N/A""")
                     return
                 # check if the stock is valued at more then a dollar, and then don't purchase
