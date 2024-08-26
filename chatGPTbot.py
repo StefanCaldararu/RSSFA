@@ -132,7 +132,7 @@ async def on_message(message):
                     return
                 # if the reversal is not a roundup or round to nearest, post a message stating that in the target channel
 
-                if reversal.strip() != 'round up' and reversal.strip() != 'round to nearest':
+                if 'round up' not in reversal.strip().lower() and 'round to nearest' not in reversal.strip().lower():
                     await target_channel.send(f"""Purchasable: FALSE\nReason: {reversal}\n{default_message}\nEstimated Profit: N/A""")
                     return
                 
