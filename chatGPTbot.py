@@ -56,7 +56,7 @@ async def on_message(message):
                 # Extract text from the parsed HTML
                 text = soup.get_text()
                 chatCompletion = openai.ChatCompletion.create(
-                    model="gpt-3.5-turbo",
+                    model="gpt-4",
                     n=3,
                     messages=[{"role": "system", "content": f"You are a financial assistant."},
                             {"role": "user", "content": f"""I will provide you with a press release, and I want you to identify a few key components. You must identify what stock is being discussed in the article, and provide the ticker for the stock, the date when the stock is undergoing a reversal, what ratio the reversal will be at, and what type of reversal the stock will undergo. Describe the stock in the following foramt: 
