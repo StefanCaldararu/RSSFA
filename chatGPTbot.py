@@ -56,7 +56,7 @@ async def on_message(message):
                 # Extract text from the parsed HTML
                 text = soup.get_text()
                 chatCompletion = openai.ChatCompletion.create(
-                    model="gpt-3.5-turbo",
+                    model="gpt-4o",
                     n=3,
                     messages=[{"role": "system", "content": f"You are a financial assistant."},
                             {"role": "user", "content": f"""I will provide you with a press release, and I want you to identify a few key components. You must identify what stock is being discussed in the article, and provide the ticker for the stock, the date when the stock is undergoing a reversal, what ratio the reversal will be at, and what type of reversal the stock will undergo. Describe the stock in the following foramt: 
@@ -131,15 +131,18 @@ async def on_message(message):
                     await target_channel.send(f"""Purchasable: FALSE\nReason: Unknown reversal\n{default_message}\nEstimated Profit: N/A""")
                     return
                 # if the reversal is not a roundup or round to nearest, post a message stating that in the target channel
-
-                if 'round up' not in reversal.strip().lower() and 'round to nearest' not in reversal.strip().lower():
+                if 'round up' in reversal.strip().lower():
+                    reversal = 'round up'
+                elif 'round to nearest' in reversal.strip().lower():
+                    reversal = 'round to nearest'
+                if reversal != 'round up' and reversal != 'round to nearest':
                     await target_channel.send(f"""Purchasable: FALSE\nReason: {reversal}\n{default_message}\nEstimated Profit: N/A""")
                     return
                 
                 # check if stock is traded on NYSE, NASDAQ, or AMEX
 
                 # list of accepted exchange markets:
-                markets = ["XNYS", "ARCX", "XCIS", "XASE", "XNAS", "XNMS", "XNGS", "XNCM", "AMXO"]
+                markets = ["XNYS", "ARCX", "XCIS", "XASE", "XNAS", "XNMS", "XNGS", "XNCM", "AMXO", "NCM"]
                 if exchange not in markets:
                     await target_channel.send(f"""Purchasable: FALSE\nReason: Exchange not supported\n{default_message}\nEstimated Profit: N/A""")
                     return
@@ -157,7 +160,6 @@ async def on_message(message):
                 today = datetime.now()
                 difference = (reversal_date - today).days
                 # check if we are within one day of the reversal
-                print(difference)
                 if difference > 1:
                     await target_channel.send(f"""Purchasable: FALSE\nReason: Too close to reversal date\n{default_message}\nEstimated Profit: N/A""")
                     return
@@ -175,7 +177,7 @@ async def on_message(message):
                 # if the reversal is a round to nearest, get the estimated profit
                 elif reversal == 'round to nearest':
                     # get the estimated profit
-                    profit = round(price, 2) * fratio - round(price, 2) * math.ceil(fratio)
+                    profit = round(price, 2) * fratio - round(price, 2) * math.ceil(fratio/2)
                     # if we are spending more than a dollar don't buy the stock
                     if(round(price,2) * math.ceil(fratio) > 1):
                         await target_channel.send(f"""Purchasable: FALSE\nReason: Price too high\n{default_message}\nEstimated Profit: {profit}""")
